@@ -34,11 +34,6 @@ class OpenAIDecodingArguments(object):
     suffix: Optional[str] = None
     logprobs: Optional[int] = None
     echo: bool = False
-        
-def validate_input(prompt):
-    if not isinstance(prompt, (str, dict)):
-        raise ValueError("Input prompt should be either a string or a dictionary")
-    return prompt
 
 
 def openai_completion(
@@ -77,7 +72,7 @@ def openai_completion(
     """
     is_single_prompt = isinstance(prompts, (str, dict))
     if is_single_prompt:
-        prompts = [validate_input(prompts)]
+        prompts = [prompts]
 
     if max_batches < sys.maxsize:
         logging.warning(
@@ -92,9 +87,7 @@ def openai_completion(
         prompts[batch_id * batch_size : (batch_id + 1) * batch_size]
         for batch_id in range(int(math.ceil(num_prompts / batch_size)))
     ]
-    
 
-    
     completions = []
     for batch_id, prompt_batch in tqdm.tqdm(
         enumerate(prompt_batches),
@@ -102,9 +95,6 @@ def openai_completion(
         total=len(prompt_batches),
     ):
         batch_decoding_args = copy.deepcopy(decoding_args)  # cloning the decoding_args
-        
-        # Set the n parameter for batch_decoding_args
-        batch_decoding_args.n = batch_size
 
         while True:
             try:
@@ -113,29 +103,7 @@ def openai_completion(
                     **batch_decoding_args.__dict__,
                     **decoding_kwargs,
                 )
-
-                # Create messages for the chat API
-                messages_batch = [
-                [
-                    {
-                        "role": "system", 
-                        "content": "You are a helpful assistant.",
-                    },
-                    {
-                        "role": "user",
-                        "content": validate_input(prompt)['content'] if isinstance(prompt, dict) else validate_input(prompt)
-                    }
-                ]
-                for prompt in prompt_batch
-            ]
-                import json
-                print(json.dumps(messages_batch, indent=2))
-
-                
-                completion_batch = openai.ChatCompletion.create(
-                    messages=messages_batch,
-                    **shared_kwargs
-                )
+                completion_batch = openai.Completion.create(prompt=prompt_batch, **shared_kwargs)
                 choices = completion_batch.choices
 
                 for choice in choices:
@@ -151,7 +119,14 @@ def openai_completion(
                     logging.warning("Hit request rate limit; retrying...")
                     time.sleep(sleep_time)  # Annoying rate limit on requests.
 
-    # ...
+    if return_text:
+        completions = [completion.text for completion in completions]
+    if decoding_args.n > 1:
+        # make completions a nested list, where each entry is a consecutive decoding_args.n of original entries.
+        completions = [completions[i : i + decoding_args.n] for i in range(0, len(completions), decoding_args.n)]
+    if is_single_prompt:
+        # Return non-tuple if only 1 input and 1 generation.
+        (completions,) = completions
     return completions
 
 
