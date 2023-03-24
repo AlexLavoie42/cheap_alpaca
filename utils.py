@@ -111,6 +111,7 @@ def openai_completion(
 
                 # Create messages for the chat API
                 messages_batch = [
+                [
                     {
                         "role": "system", 
                         "content": "You are a helpful assistant.",
