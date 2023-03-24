@@ -111,10 +111,11 @@ def openai_completion(
 
                 # Create messages for the chat API
                 messages_batch = [
-                    [
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": prompt}
-                    ]
+                    {
+                        "role": "system", 
+                        "content": "You are a helpful assistant.",
+                        "user_prompt": prompt
+                    }
                     for prompt in prompt_batch
                 ]
 
