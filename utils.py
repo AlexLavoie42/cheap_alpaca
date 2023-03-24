@@ -88,8 +88,7 @@ def openai_completion(
         for batch_id in range(int(math.ceil(num_prompts / batch_size)))
     ]
     
-    # Set the n parameter for batch_decoding_args
-    batch_decoding_args.n = batch_size
+
     
     completions = []
     for batch_id, prompt_batch in tqdm.tqdm(
@@ -98,6 +97,9 @@ def openai_completion(
         total=len(prompt_batches),
     ):
         batch_decoding_args = copy.deepcopy(decoding_args)  # cloning the decoding_args
+        
+        # Set the n parameter for batch_decoding_args
+        batch_decoding_args.n = batch_size
 
         while True:
             try:
