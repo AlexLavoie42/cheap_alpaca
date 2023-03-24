@@ -123,7 +123,7 @@ def openai_completion(
                     },
                     {
                         "role": "user",
-                        "content": validate_input(prompt)
+                        "content": validate_input(prompt)['content'] if isinstance(prompt, dict) else validate_input(prompt)
                     }
                 ]
                 for prompt in prompt_batch
