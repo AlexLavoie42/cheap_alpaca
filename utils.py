@@ -128,6 +128,8 @@ def openai_completion(
                 ]
                 for prompt in prompt_batch
             ]
+                import json
+                print(json.dumps(messages_batch, indent=2))
 
                 
                 completion_batch = openai.ChatCompletion.create(
