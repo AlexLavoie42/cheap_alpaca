@@ -34,6 +34,11 @@ class OpenAIDecodingArguments(object):
     suffix: Optional[str] = None
     logprobs: Optional[int] = None
     echo: bool = False
+        
+def validate_input(prompt):
+    if not isinstance(prompt, (str, dict)):
+        raise ValueError("Input prompt should be either a string or a dictionary")
+    return prompt
 
 
 def openai_completion(
@@ -72,7 +77,7 @@ def openai_completion(
     """
     is_single_prompt = isinstance(prompts, (str, dict))
     if is_single_prompt:
-        prompts = [prompts]
+        prompts = [validate_input(prompts)]
 
     if max_batches < sys.maxsize:
         logging.warning(
@@ -118,7 +123,7 @@ def openai_completion(
                     },
                     {
                         "role": "user",
-                        "content": prompt
+                        "content": validate_input(prompt)
                     }
                 ]
                 for prompt in prompt_batch
