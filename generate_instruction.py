@@ -5,7 +5,7 @@ run:
 python -m generate_instruction generate_instruction_following_data \
   --output_dir ./ \
   --num_instructions_to_generate 10 \
-  --model_name="text-davinci-003" \
+  --model_name="gpt-4-0314" \
 """
 import time
 import json
@@ -111,7 +111,7 @@ def generate_instruction_following_data(
     output_dir="./",
     seed_tasks_path="./seed_tasks.jsonl",
     num_instructions_to_generate=100,
-    model_name="text-davinci-003",
+    model_name="gpt-4-0314",
     num_prompt_instructions=3,
     request_batch_size=5,
     temperature=1.0,
