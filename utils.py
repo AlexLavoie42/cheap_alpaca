@@ -87,7 +87,10 @@ def openai_completion(
         prompts[batch_id * batch_size : (batch_id + 1) * batch_size]
         for batch_id in range(int(math.ceil(num_prompts / batch_size)))
     ]
-
+    
+    # Set the n parameter for batch_decoding_args
+    batch_decoding_args.n = batch_size
+    
     completions = []
     for batch_id, prompt_batch in tqdm.tqdm(
         enumerate(prompt_batches),
@@ -116,7 +119,6 @@ def openai_completion(
                 
                 completion_batch = openai.ChatCompletion.create(
                     messages=messages_batch,
-                    n=batch_size, #handles multiple conversations
                     **shared_kwargs
                 )
                 choices = completion_batch.choices
