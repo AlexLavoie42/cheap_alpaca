@@ -108,9 +108,11 @@ def openai_completion(
                 messages_batch = [
                     [
                         {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": prompt}
+                        *[
+                            {"role": "user", "content": prompt}
+                            for prompt in prompt_batch
+                        ],
                     ]
-                    for prompt in prompt_batch
                 ]
 
                 completion_batch = openai.ChatCompletion.create(messages=messages_batch, **shared_kwargs)
