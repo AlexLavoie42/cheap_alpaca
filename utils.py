@@ -119,8 +119,9 @@ def openai_completion(
                         "role": "user",
                         "content": prompt
                     }
-                    for prompt in prompt_batch
                 ]
+                for prompt in prompt_batch
+            ]
 
                 
                 completion_batch = openai.ChatCompletion.create(
