@@ -39,7 +39,7 @@ class OpenAIDecodingArguments(object):
 def openai_completion(
     prompts: Union[str, Sequence[str], Sequence[dict[str, str]], dict[str, str]],
     decoding_args: OpenAIDecodingArguments,
-    model_name="text-davinci-003",
+    model_name="gpt-4-0314",
     sleep_time=2,
     batch_size=1,
     max_instances=sys.maxsize,
@@ -103,7 +103,17 @@ def openai_completion(
                     **batch_decoding_args.__dict__,
                     **decoding_kwargs,
                 )
-                completion_batch = openai.Completion.create(prompt=prompt_batch, **shared_kwargs)
+
+                # Create messages for the chat API
+                messages_batch = [
+                    [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": prompt}
+                    ]
+                    for prompt in prompt_batch
+                ]
+
+                completion_batch = openai.ChatCompletion.create(messages=messages_batch, **shared_kwargs)
                 choices = completion_batch.choices
 
                 for choice in choices:
@@ -119,14 +129,7 @@ def openai_completion(
                     logging.warning("Hit request rate limit; retrying...")
                     time.sleep(sleep_time)  # Annoying rate limit on requests.
 
-    if return_text:
-        completions = [completion.text for completion in completions]
-    if decoding_args.n > 1:
-        # make completions a nested list, where each entry is a consecutive decoding_args.n of original entries.
-        completions = [completions[i : i + decoding_args.n] for i in range(0, len(completions), decoding_args.n)]
-    if is_single_prompt:
-        # Return non-tuple if only 1 input and 1 generation.
-        (completions,) = completions
+    # ...
     return completions
 
 
