@@ -116,7 +116,7 @@ def openai_completion(
                         "content": "You are a helpful assistant.",
                     },
                     {
-                        :role": "user",
+                        "role": "user",
                         "content": prompt
                     }
                     for prompt in prompt_batch
