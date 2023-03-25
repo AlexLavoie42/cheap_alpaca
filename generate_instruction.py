@@ -44,7 +44,7 @@ def encode_prompt(prompt_instructions):
 def post_process_gpt3_response(num_prompt_instructions, response):
     if response is None:
         return []
-    raw_instructions = f"{num_prompt_instructions+1}. Instruction:" + response["text"]
+    raw_instructions = f"{num_prompt_instructions+1}. Instruction:" + response["message"]['content']
     raw_instructions = re.split("###", raw_instructions)
     instructions = []
     for idx, inst in enumerate(raw_instructions):
@@ -111,7 +111,7 @@ def generate_instruction_following_data(
     output_dir="./",
     seed_tasks_path="./seed_tasks.jsonl",
     num_instructions_to_generate=100,
-    model_name="gpt-4-0314",
+    model_name="gpt-3.5-turbo",
     num_prompt_instructions=3,
     request_batch_size=5,
     temperature=1.0,
@@ -161,7 +161,7 @@ def generate_instruction_following_data(
             n=1,
             max_tokens=3072,  # hard-code to maximize the length. the requests will be automatically adjusted
             top_p=top_p,
-            stop=["\n20", "20.", "20."],
+            stop=["\n15", "15.", "15."],
         )
         request_start = time.time()
         results = utils.openai_completion(

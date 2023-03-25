@@ -31,15 +31,12 @@ class OpenAIDecodingArguments(object):
     stop: Optional[Sequence[str]] = None
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
-    suffix: Optional[str] = None
-    logprobs: Optional[int] = None
-    echo: bool = False
 
 
 def openai_completion(
     prompts: Union[str, Sequence[str], Sequence[dict[str, str]], dict[str, str]],
     decoding_args: OpenAIDecodingArguments,
-    model_name="gpt-4-0314",
+    model_name="gpt-3.5-turbo",
     sleep_time=2,
     batch_size=1,
     max_instances=sys.maxsize,
@@ -74,12 +71,12 @@ def openai_completion(
     if is_single_prompt:
         prompts = [prompts]
 
-    if max_batches < sys.maxsize:
-        logging.warning(
-            "`max_batches` will be deprecated in the future, please use `max_instances` instead."
-            "Setting `max_instances` to `max_batches * batch_size` for now."
-        )
-        max_instances = max_batches * batch_size
+    # if max_batches < sys.maxsize:
+    #     logging.warning(
+    #         "`max_batches` will be deprecated in the future, please use `max_instances` instead."
+    #         "Setting `max_instances` to `max_batches * batch_size` for now."
+    #     )
+    #     max_instances = max_batches * batch_size
 
     prompts = prompts[:max_instances]
     num_prompts = len(prompts)
@@ -98,12 +95,17 @@ def openai_completion(
 
         while True:
             try:
+                prompt_messages = [
+                    {"role": "system", "content": "Please provide me with detailed instructions on how to complete this task."},
+                    {"role": "user", "content": prompt_batch[0]},
+                ]
+
                 shared_kwargs = dict(
                     model=model_name,
                     **batch_decoding_args.__dict__,
                     **decoding_kwargs,
                 )
-                completion_batch = openai.ChatCompletion.create(prompt=prompt_batch, **shared_kwargs)
+                completion_batch = openai.ChatCompletion.create(messages=prompt_messages, **shared_kwargs)
                 choices = completion_batch.choices
 
                 for choice in choices:
@@ -112,7 +114,7 @@ def openai_completion(
                 break
             except openai.error.OpenAIError as e:
                 logging.warning(f"OpenAIError: {e}.")
-                if "Please reduce your prompt" in str(e):
+                if "Please reduce the length of the messages or completion" in str(e):
                     batch_decoding_args.max_tokens = int(batch_decoding_args.max_tokens * 0.8)
                     logging.warning(f"Reducing target length to {batch_decoding_args.max_tokens}, Retrying...")
                 else:
