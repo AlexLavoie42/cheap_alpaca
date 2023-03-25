@@ -99,6 +99,9 @@ def post_process_gpt3_response(num_prompt_instructions, response):
         # filter those starting with non-english character
         if not inst[0].isascii():
             continue
+        # filter anything with a url
+        if "http://" in inst or "https://" in inst:
+            continue
         instructions.append({"instruction": inst, "input": input, "output": output})
     return instructions
 
